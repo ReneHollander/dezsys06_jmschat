@@ -36,34 +36,6 @@ public class JMSChat implements Closeable {
 
 		// Create a Session
 		this.session = this.connection.createSession(false, Session.AUTO_ACKNOWLEDGE);
-		/*
-		 * // Create the destination (Topic or Queue) this.currentDestination =
-		 * this.session.createQueue("TEST.FOO");
-		 * 
-		 * // Create a MessageProducer from the Session to the Topic or Queue
-		 * MessageProducer producer = session.createProducer(destination);
-		 * producer.setDeliveryMode(DeliveryMode.NON_PERSISTENT);
-		 * 
-		 * // Create a messages String text = "Hello world! From: " +
-		 * Thread.currentThread().getName() + " : " + this.hashCode();
-		 * TextMessage message = session.createTextMessage(text);
-		 * 
-		 * // Tell the producer to send the message
-		 * System.out.println("Sent message: " + message.hashCode() + " : " +
-		 * Thread.currentThread().getName()); producer.send(message);
-		 * 
-		 * // Create a MessageConsumer from the Session to the Topic or Queue
-		 * MessageConsumer consumer = session.createConsumer(destination);
-		 * 
-		 * // Wait for a message Message recvmessage = consumer.receive(1000);
-		 * 
-		 * if (recvmessage instanceof TextMessage) { TextMessage textMessage =
-		 * (TextMessage) recvmessage; String recvtext = textMessage.getText();
-		 * System.out.println("Received: " + text); } else {
-		 * System.out.println("Received: " + recvmessage); } consumer.close();
-		 * 
-		 * // Clean up session.close(); connection.close();
-		 */
 	}
 
 	public ChatRoom joinChatroom(String topicName) throws IOException, JMSException {
