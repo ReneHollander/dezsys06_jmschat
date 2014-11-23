@@ -2,6 +2,7 @@ package at.hollandermalik.jmschat.chat;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.LocalDateTime;
 
 import javax.jms.DeliveryMode;
 import javax.jms.Destination;
@@ -9,6 +10,9 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import at.hollandermalik.jmschat.message.ChatMessage;
 import at.hollandermalik.jmschat.message.MessageUtil;
@@ -19,6 +23,8 @@ import at.hollandermalik.jmschat.message.MessageUtil;
  * @author Rene Hollander
  */
 public class ChatRoom implements Closeable {
+
+	private static final Logger LOGGER = LogManager.getLogger(ChatRoom.class);
 
 	private JMSChat chat;
 	private String topicName;
@@ -64,9 +70,10 @@ public class ChatRoom implements Closeable {
 	 * @param message
 	 *            String content of the message
 	 * @throws JMSException
+	 * @throws IOException
 	 */
-	public void sendMessage(String message) throws JMSException {
-		this.getProducer().send(MessageUtil.serializeMessage(this.getChat().getSession(), new ChatMessage(this.getChat().getMyIp(), this.getChat().getNickname(), message)));
+	public void sendMessage(String message) throws JMSException, IOException {
+		this.getProducer().send(MessageUtil.serializeMessage(this.getChat().getSession(), new ChatMessage(this.getChat().getMyIp(), LocalDateTime.now(), this.getChat().getNickname(), message)));
 	}
 
 	/**
@@ -149,8 +156,8 @@ public class ChatRoom implements Closeable {
 						ChatMessage chatMessage = MessageUtil.deserializeMessage(message);
 						this.chatRoom.getChat().getMessageHandler().handle(chatMessage);
 					}
-				} catch (JMSException e) {
-					e.printStackTrace();
+				} catch (Exception e) {
+					LOGGER.error("An Error occured while trying to read messages", e);
 				}
 			}
 		}

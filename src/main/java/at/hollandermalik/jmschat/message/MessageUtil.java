@@ -1,10 +1,16 @@
 package at.hollandermalik.jmschat.message;
 
+import java.io.IOException;
 import java.net.InetAddress;
+import java.time.LocalDateTime;
+import java.util.HashMap;
 
+import javax.jms.BytesMessage;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.Session;
+
+import at.hollandermalik.jmschat.util.Util;
 
 /**
  * Util for the ChatMessage
@@ -14,6 +20,7 @@ import javax.jms.Session;
 public class MessageUtil {
 
 	private static final String SENDERIP_PROPERTY_KEY = "senderip";
+	private static final String TIMESTAMP_PROPERTY_KEY = "timestamp";
 	private static final String NICKNAME_PROPERTY_KEY = "nickname";
 	private static final String CONTENT_PROPERTY_KEY = "content";
 
@@ -26,13 +33,19 @@ public class MessageUtil {
 	 *            Message to serialize
 	 * @return JMS Message
 	 * @throws JMSException
+	 * @throws IOException
 	 */
-	public static Message serializeMessage(Session session, ChatMessage chatMessage) throws JMSException {
-		Message message = session.createBytesMessage();
+	public static Message serializeMessage(Session session, ChatMessage chatMessage) throws JMSException, IOException {
+		BytesMessage message = session.createBytesMessage();
 
-		message.setObjectProperty(SENDERIP_PROPERTY_KEY, chatMessage.getSenderIp());
-		message.setStringProperty(NICKNAME_PROPERTY_KEY, chatMessage.getNickname());
-		message.setStringProperty(CONTENT_PROPERTY_KEY, chatMessage.getContent());
+		HashMap<String, Object> map = new HashMap<String, Object>();
+
+		map.put(SENDERIP_PROPERTY_KEY, chatMessage.getSenderIp());
+		map.put(TIMESTAMP_PROPERTY_KEY, chatMessage.getTimestamp());
+		map.put(NICKNAME_PROPERTY_KEY, chatMessage.getNickname());
+		map.put(CONTENT_PROPERTY_KEY, chatMessage.getContent());
+
+		message.writeBytes(Util.serializeToByteArray(map));
 
 		return message;
 	}
@@ -40,17 +53,26 @@ public class MessageUtil {
 	/**
 	 * Deserialize a JMSMessage into a ChatMessage
 	 * 
-	 * @param message
+	 * @param inMsg
 	 *            JMS Message to desrialize
 	 * @return ChatMessage from the JMS Message
 	 * @throws JMSException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
 	 */
-	public static ChatMessage deserializeMessage(Message message) throws JMSException {
-		InetAddress senderIp = (InetAddress) message.getObjectProperty(SENDERIP_PROPERTY_KEY);
-		String nickname = message.getStringProperty(NICKNAME_PROPERTY_KEY);
-		String content = message.getStringProperty(CONTENT_PROPERTY_KEY);
+	public static ChatMessage deserializeMessage(Message inMsg) throws JMSException, ClassNotFoundException, IOException {
+		BytesMessage message = (BytesMessage) inMsg;
 
-		return new ChatMessage(senderIp, nickname, content);
+		byte[] data = new byte[(int) message.getBodyLength()];
+		message.readBytes(data);
+		@SuppressWarnings("unchecked")
+		HashMap<String, Object> map = (HashMap<String, Object>) Util.deserilizeFromByteArray(data);
+
+		InetAddress senderIp = (InetAddress) map.get(SENDERIP_PROPERTY_KEY);
+		LocalDateTime timestamp = (LocalDateTime) map.get(TIMESTAMP_PROPERTY_KEY);
+		String nickname = (String) map.get(NICKNAME_PROPERTY_KEY);
+		String content = (String) map.get(CONTENT_PROPERTY_KEY);
+
+		return new ChatMessage(senderIp, timestamp, nickname, content);
 	}
-
 }

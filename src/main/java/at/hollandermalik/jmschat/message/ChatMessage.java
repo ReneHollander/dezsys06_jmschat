@@ -1,6 +1,7 @@
 package at.hollandermalik.jmschat.message;
 
 import java.net.InetAddress;
+import java.time.LocalDateTime;
 
 /**
  * A Message to send over the network. Contains IP, InetAddress of the sender
@@ -11,6 +12,7 @@ import java.net.InetAddress;
 public class ChatMessage {
 
 	private InetAddress senderIp;
+	private LocalDateTime timestamp;
 	private String nickname;
 	private String content;
 
@@ -19,12 +21,16 @@ public class ChatMessage {
 	 * 
 	 * @param senderIp
 	 *            IP of the sender of the message
+	 * @param timestamp
+	 *            Timestamp of the sent message
 	 * @param nickname
 	 *            Nickname of the sender of the message
 	 * @param content
 	 *            String content of the message
 	 */
-	public ChatMessage(InetAddress senderIp, String nickname, String content) {
+	public ChatMessage(InetAddress senderIp, LocalDateTime timestamp, String nickname, String content) {
+		this.senderIp = senderIp;
+		this.timestamp = timestamp;
 		this.nickname = nickname;
 		this.content = content;
 	}
@@ -36,6 +42,15 @@ public class ChatMessage {
 	 */
 	public InetAddress getSenderIp() {
 		return this.senderIp;
+	}
+
+	/**
+	 * Gets the Timestamp of the message
+	 * 
+	 * @return Timestamp
+	 */
+	public LocalDateTime getTimestamp() {
+		return this.timestamp;
 	}
 
 	/**
@@ -58,7 +73,7 @@ public class ChatMessage {
 
 	@Override
 	public String toString() {
-		return "ChatMessage [nickname=" + nickname + ", content=" + content + "]";
+		return "ChatMessage [senderIp=" + senderIp + ", timestamp=" + timestamp + ", nickname=" + nickname + ", content=" + content + "]";
 	}
 
 	@Override
@@ -67,6 +82,8 @@ public class ChatMessage {
 		int result = 1;
 		result = prime * result + ((content == null) ? 0 : content.hashCode());
 		result = prime * result + ((nickname == null) ? 0 : nickname.hashCode());
+		result = prime * result + ((senderIp == null) ? 0 : senderIp.hashCode());
+		result = prime * result + ((timestamp == null) ? 0 : timestamp.hashCode());
 		return result;
 	}
 
@@ -88,6 +105,16 @@ public class ChatMessage {
 			if (other.nickname != null)
 				return false;
 		} else if (!nickname.equals(other.nickname))
+			return false;
+		if (senderIp == null) {
+			if (other.senderIp != null)
+				return false;
+		} else if (!senderIp.equals(other.senderIp))
+			return false;
+		if (timestamp == null) {
+			if (other.timestamp != null)
+				return false;
+		} else if (!timestamp.equals(other.timestamp))
 			return false;
 		return true;
 	}

@@ -2,6 +2,7 @@ package at.hollandermalik.jmschat.chat;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
 
@@ -53,8 +54,10 @@ public class Mailbox implements Closeable {
 	 * 
 	 * @return Messages from the mailbox
 	 * @throws JMSException
+	 * @throws IOException
+	 * @throws ClassNotFoundException
 	 */
-	public List<ChatMessage> getMessageQueue() throws JMSException {
+	public List<ChatMessage> getMessageQueue() throws JMSException, ClassNotFoundException, IOException {
 		List<ChatMessage> messageQueue = new ArrayList<ChatMessage>();
 
 		Message message;
@@ -72,12 +75,13 @@ public class Mailbox implements Closeable {
 	 * @param content
 	 *            Content of the message
 	 * @throws JMSException
+	 * @throws IOException
 	 */
-	public void sendMessageToQueue(String recieverNickname, String content) throws JMSException {
+	public void sendMessageToQueue(String recieverNickname, String content) throws JMSException, IOException {
 		Destination destination = this.getChat().getSession().createQueue(recieverNickname);
 		MessageProducer producer = this.getChat().getSession().createProducer(destination);
 		producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-		producer.send(MessageUtil.serializeMessage(this.getChat().getSession(), new ChatMessage(this.getChat().getMyIp(), this.getChat().getNickname(), content)));
+		producer.send(MessageUtil.serializeMessage(this.getChat().getSession(), new ChatMessage(this.getChat().getMyIp(), LocalDateTime.now(), this.getChat().getNickname(), content)));
 		producer.close();
 	}
 
