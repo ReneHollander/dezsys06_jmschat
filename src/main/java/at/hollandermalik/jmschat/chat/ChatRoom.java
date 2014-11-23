@@ -12,14 +12,16 @@ import javax.jms.MessageProducer;
 
 import at.hollandermalik.jmschat.message.ChatMessage;
 import at.hollandermalik.jmschat.message.MessageUtil;
-import at.hollandermalik.jmschat.util.Handler;
 
+/**
+ * A ChatRoom based on a JMS Topic.
+ * 
+ * @author Rene Hollander
+ */
 public class ChatRoom implements Closeable {
 
 	private JMSChat chat;
 	private String topicName;
-
-	private Handler<ChatMessage> messageHandler;
 
 	private Destination destination;
 	private MessageProducer producer;
@@ -27,11 +29,24 @@ public class ChatRoom implements Closeable {
 
 	private MessageReciever messageReciever;
 
+	/**
+	 * Construct but not join a new ChatRoom
+	 * 
+	 * @param chat
+	 *            JMSChat parent
+	 * @param topicName
+	 *            Name of the Topic to join (Chatroom)
+	 */
 	public ChatRoom(JMSChat chat, String topicName) {
 		this.chat = chat;
 		this.topicName = topicName;
 	}
 
+	/**
+	 * Actually join the ChatRoom
+	 * 
+	 * @throws JMSException
+	 */
 	public void join() throws JMSException {
 		this.destination = this.getChat().getSession().createTopic(this.getTopicName());
 
@@ -43,34 +58,58 @@ public class ChatRoom implements Closeable {
 		this.messageReciever = new MessageReciever(this);
 	}
 
-	public Handler<ChatMessage> getMessageHandler() {
-		return messageHandler;
-	}
-
-	public void setMessageHandler(Handler<ChatMessage> messageHandler) {
-		this.messageHandler = messageHandler;
-	}
-
+	/**
+	 * Send a message to the chatroom
+	 * 
+	 * @param message
+	 *            String content of the message
+	 * @throws JMSException
+	 */
 	public void sendMessage(String message) throws JMSException {
 		this.getProducer().send(MessageUtil.serializeMessage(this.getChat().getSession(), new ChatMessage(this.getChat().getMyIp(), this.getChat().getNickname(), message)));
 	}
 
+	/**
+	 * Gets the parent JMSChat associated with this chatroom
+	 * 
+	 * @return Parent JMSChat
+	 */
 	public JMSChat getChat() {
 		return this.chat;
 	}
 
+	/**
+	 * Gets the Topic of the current chatroom
+	 * 
+	 * @return Topic
+	 */
 	public String getTopicName() {
 		return this.topicName;
 	}
 
+	/**
+	 * Gets the Desination of the chatroom
+	 * 
+	 * @return Destination
+	 */
 	public Destination getDestination() {
 		return this.destination;
 	}
 
+	/**
+	 * Gets the MessageProducer of the chatroom
+	 * 
+	 * @return MessageProducer
+	 */
 	public MessageProducer getProducer() {
 		return this.producer;
 	}
 
+	/**
+	 * Gets the MessageConsumer of the chatroom
+	 * 
+	 * @return MessageConsumer
+	 */
 	public MessageConsumer getConsumer() {
 		return this.consumer;
 	}
@@ -106,9 +145,9 @@ public class ChatRoom implements Closeable {
 			while (this.running) {
 				try {
 					Message message = this.chatRoom.consumer.receive();
-					if (this.chatRoom.getMessageHandler() != null) {
+					if (this.chatRoom.getChat().getMessageHandler() != null) {
 						ChatMessage chatMessage = MessageUtil.deserializeMessage(message);
-						this.chatRoom.getMessageHandler().handle(chatMessage);
+						this.chatRoom.getChat().getMessageHandler().handle(chatMessage);
 					}
 				} catch (JMSException e) {
 					e.printStackTrace();
