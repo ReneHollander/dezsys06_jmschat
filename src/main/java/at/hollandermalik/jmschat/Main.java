@@ -15,11 +15,13 @@ import org.apache.logging.log4j.Logger;
 import at.hollandermalik.jmschat.chat.JMSChat;
 import at.hollandermalik.jmschat.chat.Mailbox;
 import at.hollandermalik.jmschat.message.ChatMessage;
+import at.hollandermalik.jmschat.util.Handler;
 
 public class Main {
 
-	//TODO I never set the message handler so this is probably the problem, but i have no idea what I should set as Messagehandler
-	
+	// TODO I never set the message handler so this is probably the problem, but
+	// i have no idea what I should set as Messagehandler
+
 	private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
 	private JMSChat chat;
@@ -27,6 +29,7 @@ public class Main {
 
 	public Main(JMSChat chat) {
 		setChat(chat);
+
 	}
 
 	public void startCliClient() {
@@ -36,20 +39,20 @@ public class Main {
 		// InputStreamReader(System.in));
 
 		LOGGER.info("Welcome!");
-		
+
 		System.out.println("Welcome!");
 		System.out.println("Enter \"HELP\" for help and \"EXIT\" if you want to leave.");
 
 		BufferedReader a;
 		String z;
-		
+
 		while (true) {
-			
+
 			a = new BufferedReader(new InputStreamReader(System.in));
 			try {
 				scanner = new Scanner(a.readLine());
 			} catch (IOException e1) {
-				e1.printStackTrace();
+				LOGGER.error("An Error occured while initialising of the scanner", e1);
 			}
 			switch (z = scanner.next()) {
 				case "HELP" :
@@ -66,13 +69,13 @@ public class Main {
 						String username = scanner.next();
 						String content = "";
 						while (scanner.hasNext()) {
-							content += " "+scanner.next();
+							content += " " + scanner.next();
 						}
 						System.out.println(username + " " + content);
 						try {
 							getMailbox().sendMessageToQueue(username, content);
-						} catch (JMSException e) {
-							e.printStackTrace();
+						} catch (JMSException | IOException e) {
+							LOGGER.error("An Error occured while sending to MessageQueue", e);
 						}
 					} else {
 						System.out.println("Please enter a valid username.");
@@ -83,7 +86,7 @@ public class Main {
 						try {
 							getChat().joinChatroom(scanner.next());
 						} catch (IOException | JMSException e) {
-							e.printStackTrace();
+							LOGGER.error("An Error occured while entering chatroom", e);
 						}
 					} else {
 						System.out.println("Please enter a valid chatroomname");
@@ -92,7 +95,7 @@ public class Main {
 				default :
 					String content = z;
 					while (scanner.hasNext()) {
-						content += " "+scanner.next();
+						content += " " + scanner.next();
 					}
 					send(content);
 					System.out.println(content);
@@ -112,16 +115,16 @@ public class Main {
 	public void send(String msg) {
 		try {
 			getChat().getCurrentChatRoom().sendMessage(msg);
-		} catch (JMSException e) {
-			e.printStackTrace();
+		} catch (JMSException | IOException e) {
+			LOGGER.error("An Error occured while trying to send messages", e);
 		}
 	}
 
 	public void mail(String recvNickname, String content) {
 		try {
 			getMailbox().sendMessageToQueue(recvNickname, content);
-		} catch (JMSException e) {
-			e.printStackTrace();
+		} catch (JMSException | IOException e) {
+			LOGGER.error("An Error occured while trying to send mails", e);
 		}
 	}
 
@@ -131,8 +134,8 @@ public class Main {
 				System.out.println("Sender: " + m.getNickname() + " (" + m.getSenderIp() + ")");
 				System.out.println("Message:\n" + m.getContent());
 			}
-		} catch (JMSException e) {
-			e.printStackTrace();
+		} catch (JMSException | ClassNotFoundException | IOException e) {
+			LOGGER.error("An Error occured while requesting for mails", e);
 		}
 	}
 
@@ -156,6 +159,7 @@ public class Main {
 		Main cli = null;
 		try {
 			cli = new Main(new JMSChat(new URI(args[0]), args[1]));
+			cli.getChat().start();
 			try {
 				if (args[2] != null) {
 					System.out.println(args[2]);
@@ -166,10 +170,8 @@ public class Main {
 			}
 		} catch (URISyntaxException e) {
 			System.out.println("Wrong broker-URI it should look like the following: tcp://ip:port");
-		} catch (IOException e) {
-			e.printStackTrace();
-		} catch (JMSException e) {
-			e.printStackTrace();
+		} catch (IOException | JMSException e) {
+			LOGGER.error("An Error occured while creating a new Main", e);
 		}
 		cli.startCliClient();
 	}
