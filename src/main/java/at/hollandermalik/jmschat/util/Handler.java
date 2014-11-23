@@ -1,4 +1,4 @@
-package at.hollandermalik.jmschat;
+package at.hollandermalik.jmschat.util;
 
 @FunctionalInterface
 public interface Handler<P> {

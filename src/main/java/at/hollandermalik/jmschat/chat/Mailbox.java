@@ -1,4 +1,4 @@
-package at.hollandermalik.jmschat;
+package at.hollandermalik.jmschat.chat;
 
 import java.util.ArrayList;
 import java.util.List;
@@ -9,6 +9,9 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
+
+import at.hollandermalik.jmschat.message.ChatMessage;
+import at.hollandermalik.jmschat.message.MessageUtil;
 
 public class Mailbox {
 
@@ -35,7 +38,7 @@ public class Mailbox {
 		Destination destination = this.getChat().getSession().createQueue(recieverNickname);
 		MessageProducer producer = this.getChat().getSession().createProducer(destination);
 		producer.setDeliveryMode(DeliveryMode.PERSISTENT);
-		producer.send(MessageUtil.serializeMessage(this.getChat().getSession(), new ChatMessage(this.getChat().getNickname(), content)));
+		producer.send(MessageUtil.serializeMessage(this.getChat().getSession(), new ChatMessage(this.getChat().getMyIp(), this.getChat().getNickname(), content)));
 		producer.close();
 	}
 

@@ -1,13 +1,20 @@
-package at.hollandermalik.jmschat;
+package at.hollandermalik.jmschat.message;
+
+import java.net.InetAddress;
 
 public class ChatMessage {
 
+	private InetAddress senderIp;
 	private String nickname;
 	private String content;
 
-	public ChatMessage(String nickname, String content) {
+	public ChatMessage(InetAddress senderIp, String nickname, String content) {
 		this.nickname = nickname;
 		this.content = content;
+	}
+
+	public InetAddress getSenderIp() {
+		return this.senderIp;
 	}
 
 	public String getNickname() {

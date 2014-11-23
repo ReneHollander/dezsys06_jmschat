@@ -1,7 +1,8 @@
-package at.hollandermalik.jmschat;
+package at.hollandermalik.jmschat.chat;
 
 import java.io.Closeable;
 import java.io.IOException;
+import java.net.InetAddress;
 import java.net.URI;
 
 import javax.jms.Connection;
@@ -10,9 +11,13 @@ import javax.jms.Session;
 
 import org.apache.activemq.ActiveMQConnectionFactory;
 
+import at.hollandermalik.jmschat.util.Util;
+
 public class JMSChat implements Closeable {
 
 	private URI brokerUri;
+
+	private InetAddress myIp;
 	private String nickname;
 
 	private ActiveMQConnectionFactory connectionFactory;
@@ -23,10 +28,13 @@ public class JMSChat implements Closeable {
 
 	public JMSChat(URI brokerUri, String nickname) {
 		this.brokerUri = brokerUri;
+
 		this.nickname = nickname;
 	}
 
-	public void start() throws JMSException {
+	public void start() throws Exception {
+		this.myIp = Util.getIp();
+
 		// Create a ConnectionFactory
 		this.connectionFactory = new ActiveMQConnectionFactory(this.brokerUri);
 
@@ -50,6 +58,10 @@ public class JMSChat implements Closeable {
 
 	public URI getBrokerUri() {
 		return brokerUri;
+	}
+
+	public InetAddress getMyIp() {
+		return myIp;
 	}
 
 	public String getNickname() {

@@ -1,4 +1,4 @@
-package at.hollandermalik.jmschat;
+package at.hollandermalik.jmschat.chat;
 
 import java.io.Closeable;
 import java.io.IOException;
@@ -9,6 +9,10 @@ import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
 import javax.jms.MessageProducer;
+
+import at.hollandermalik.jmschat.message.ChatMessage;
+import at.hollandermalik.jmschat.message.MessageUtil;
+import at.hollandermalik.jmschat.util.Handler;
 
 public class ChatRoom implements Closeable {
 
@@ -48,7 +52,7 @@ public class ChatRoom implements Closeable {
 	}
 
 	public void sendMessage(String message) throws JMSException {
-		this.getProducer().send(MessageUtil.serializeMessage(this.getChat().getSession(), new ChatMessage(this.getChat().getNickname(), message)));
+		this.getProducer().send(MessageUtil.serializeMessage(this.getChat().getSession(), new ChatMessage(this.getChat().getMyIp(), this.getChat().getNickname(), message)));
 	}
 
 	public JMSChat getChat() {
