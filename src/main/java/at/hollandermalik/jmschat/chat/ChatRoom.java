@@ -152,6 +152,10 @@ public class ChatRoom implements Closeable {
 			while (this.running) {
 				try {
 					Message message = this.chatRoom.consumer.receive();
+					if (message == null) {
+						this.close();
+						break;
+					}
 					if (this.chatRoom.getChat().getMessageHandler() != null) {
 						ChatMessage chatMessage = MessageUtil.deserializeMessage(message);
 						this.chatRoom.getChat().getMessageHandler().handle(chatMessage);
