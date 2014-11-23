@@ -15,52 +15,57 @@ import org.apache.logging.log4j.Logger;
 import at.hollandermalik.jmschat.chat.JMSChat;
 import at.hollandermalik.jmschat.chat.Mailbox;
 import at.hollandermalik.jmschat.message.ChatMessage;
-import at.hollandermalik.jmschat.util.Handler;
 
+/**
+ * The CLI for the chat, provides all the commands and starts the chatclient
+ * 
+ * @author Patrick Malik
+ * @version 141123
+ */
 public class Main {
-
-	// TODO I never set the message handler so this is probably the problem, but
-	// i have no idea what I should set as Messagehandler
 
 	private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
 	private JMSChat chat;
 	private Mailbox mailbox;
 
+	/**
+	 * Constructs Main and sets the chat
+	 * 
+	 * @param chat
+	 *            the given chat
+	 */
 	public Main(JMSChat chat) {
 		setChat(chat);
 
 	}
 
+	/**
+	 * Starts the CLI-Client, checks for the input and sets the required attributes.
+	 */
 	public void startCliClient() {
 
 		Scanner scanner = null;
-		// BufferedReader stdIn = new BufferedReader(new
-		// InputStreamReader(System.in));
 
-		this.getChat().setMessageHandler(new Handler<ChatMessage>() {
-
-			@Override
-			public void handle(ChatMessage param) {
-				LOGGER.info(param.getNickname() + " [" + param.getSenderIp() + "]: " + param.getContent());
-			}
+		this.getChat().setMessageHandler(message -> {
+			System.out.println(message);
 		});
 
 		LOGGER.info("Welcome!");
 		LOGGER.info("Enter \"HELP\" for help and \"EXIT\" if you want to leave.");
 
-		BufferedReader a;
-		String z;
+		BufferedReader sysin;
+		String begin;
 
 		while (true) {
 
-			a = new BufferedReader(new InputStreamReader(System.in));
+			sysin = new BufferedReader(new InputStreamReader(System.in));
 			try {
-				scanner = new Scanner(a.readLine());
+				scanner = new Scanner(sysin.readLine());
 			} catch (IOException e1) {
 				LOGGER.error("An Error occured while initialising of the scanner", e1);
 			}
-			switch (z = scanner.next()) {
+			switch (begin = scanner.next()) {
 				case "HELP" :
 					help();
 					break;
@@ -103,7 +108,7 @@ public class Main {
 					}
 					break;
 				default :
-					String content = z;
+					String content = begin;
 					while (scanner.hasNext()) {
 						content += " " + scanner.next();
 					}
@@ -154,7 +159,7 @@ public class Main {
 			if (args.length >= 2) {
 				Main cli = new Main(new JMSChat(new URI(args[0]), args[1]));
 				cli.getChat().start();
-				if (args.length != 3) {
+				if (args.length == 3) {
 					LOGGER.info(args[2]);
 					cli.getChat().joinChatroom(args[2]);
 				} else {
@@ -163,7 +168,7 @@ public class Main {
 				cli.startCliClient();
 			} else {
 				// TODO not enough arguments, display help
-				LOGGER.info("");
+				LOGGER.info("Not enough arguments");
 			}
 		} catch (URISyntaxException e) {
 			LOGGER.info("Wrong broker-URI it should look like the following: tcp://ip:port");
