@@ -3,6 +3,9 @@ package at.hollandermalik.jmschat;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.util.Scanner;
 
 import javax.jms.JMSException;
 
@@ -15,6 +18,8 @@ import at.hollandermalik.jmschat.message.ChatMessage;
 
 public class Main {
 
+	//TODO I never set the message handler so this is probably the problem, but i have no idea what I should set as Messagehandler
+	
 	private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
 	private JMSChat chat;
@@ -25,74 +30,82 @@ public class Main {
 	}
 
 	public void startCliClient() {
-		boolean tryAgain = true;
 
-		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+		Scanner scanner = null;
+		// BufferedReader stdIn = new BufferedReader(new
+		// InputStreamReader(System.in));
 
 		LOGGER.info("Welcome!");
-
+		
 		System.out.println("Welcome!");
 		System.out.println("Enter \"HELP\" for help and \"EXIT\" if you want to leave.");
 
-		// while (tryAgain) {
-
-		// }
-
+		BufferedReader a;
+		String z;
+		
 		while (true) {
-
-			// TODO please use the scanner...
-
-			String input = null;
+			
+			a = new BufferedReader(new InputStreamReader(System.in));
 			try {
-				input = stdIn.readLine();
+				scanner = new Scanner(a.readLine());
 			} catch (IOException e1) {
-				// TODO Auto-generated catch block
 				e1.printStackTrace();
 			}
-
-			if (input.equals("HELP")) {
-				System.out.println("Help");
-				this.help();
-			} else if (input.equals("EXIT")) {
-				System.out.println("exit");
-				return;
-			} else if (input.equals("MAILBOX")) {
-				System.out.println("mailbox");
-				this.mailbox();
-			} else {
-				String s1, s2;
-				try {
-					s1 = input.substring(0, input.indexOf(" "));
-					s2 = input.substring(input.indexOf(" ") + 1);
-				} catch (StringIndexOutOfBoundsException e1) {
-					s1 = "";
-					s2 = "";
-				}
-				if (s1.equals("MAIL")) {
-					System.out.println("mail");
-					try {
-						s1 = s2.substring(0, s2.indexOf(" "));
-						s2 = s2.substring(s2.indexOf(" ") + 1);
-					} catch (StringIndexOutOfBoundsException e1) {
-						s1 = "";
-						s2 = "";
+			switch (z = scanner.next()) {
+				case "HELP" :
+					this.help();
+					break;
+				case "EXIT" :
+					System.out.println("exiting");
+					return;
+				case "MAILBOX" :
+					this.mailbox();
+					break;
+				case "MAIL" :
+					if (scanner.hasNext()) {
+						String username = scanner.next();
+						String content = "";
+						while (scanner.hasNext()) {
+							content += " "+scanner.next();
+						}
+						System.out.println(username + " " + content);
+						try {
+							getMailbox().sendMessageToQueue(username, content);
+						} catch (JMSException e) {
+							e.printStackTrace();
+						}
+					} else {
+						System.out.println("Please enter a valid username.");
 					}
-					// TODO WE ONLY USE THE USERNAME TO SPECIFY A MAILBOX!!!
-					this.mail(s1, s2);
-				} else if (!s1.equals("")) {
-					System.out.println("send");
-					this.send(input);
-				}
+					break;
+				case "CHATROOM" :
+					if (scanner.hasNext()) {
+						try {
+							getChat().joinChatroom(scanner.next());
+						} catch (IOException | JMSException e) {
+							e.printStackTrace();
+						}
+					} else {
+						System.out.println("Please enter a valid chatroomname");
+					}
+					break;
+				default :
+					String content = z;
+					while (scanner.hasNext()) {
+						content += " "+scanner.next();
+					}
+					send(content);
+					System.out.println(content);
 			}
-
+			scanner.close();
 		}
 	}
-
 	public void help() {
 
 		System.out.println("EXIT\texit the program");
-		System.out.println("MAIL <userIP> <message>\tsends a mail to the mailbox of the given user");
+		System.out.println("MAIL <nickname> <message>\tsends a mail to the mailbox of the given user");
 		System.out.println("MAILBOX\tcall up your mailbox");
+		System.out.println("CHATROOM <chatroomname>\tEnters the given chatroom");
 
 	}
 
@@ -140,7 +153,24 @@ public class Main {
 	}
 
 	public static void main(String[] args) {
-		Main cli = new Main(new JMSChat(null, null));
+		Main cli = null;
+		try {
+			cli = new Main(new JMSChat(new URI(args[0]), args[1]));
+			try {
+				if (args[2] != null) {
+					System.out.println(args[2]);
+					cli.getChat().joinChatroom(args[2]);
+				}
+			} catch (ArrayIndexOutOfBoundsException e1) {
+				System.out.println("You still have to join a chatroom");
+			}
+		} catch (URISyntaxException e) {
+			System.out.println("Wrong broker-URI it should look like the following: tcp://ip:port");
+		} catch (IOException e) {
+			e.printStackTrace();
+		} catch (JMSException e) {
+			e.printStackTrace();
+		}
 		cli.startCliClient();
 	}
 
