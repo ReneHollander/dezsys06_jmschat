@@ -57,7 +57,9 @@ public class JMSChat implements Closeable {
 	 * made.
 	 * 
 	 * @throws IOException
+	 *             If there was an Error getting the IP
 	 * @throws JMSException
+	 *             Throws JMS Exception on JMS Error
 	 */
 	public void start() throws IOException, JMSException {
 		this.myIp = Util.getIp();
@@ -80,7 +82,9 @@ public class JMSChat implements Closeable {
 	 *            Name of the chatroom
 	 * @return Chatroom that we connected to
 	 * @throws IOException
+	 *             If there was an Error closing the currentChatRoom
 	 * @throws JMSException
+	 *             Throws JMS Exception on JMS Error
 	 */
 	public ChatRoom joinChatroom(String topicName) throws IOException, JMSException {
 		if (this.getCurrentChatRoom() != null) {
@@ -98,6 +102,7 @@ public class JMSChat implements Closeable {
 	 * 
 	 * @return The mailbox we connected to
 	 * @throws JMSException
+	 *             Throws JMS Exception on JMS Error
 	 */
 	public Mailbox getMailbox() throws JMSException {
 		if (this.mailbox == null) {
@@ -174,6 +179,7 @@ public class JMSChat implements Closeable {
 	 * Sets the message handler to handle messages comming from the ChatRoom.
 	 * 
 	 * @param handler
+	 *            Message Handler to set
 	 */
 	public void setMessageHandler(Handler<ChatMessage> handler) {
 		this.messageHandler = handler;

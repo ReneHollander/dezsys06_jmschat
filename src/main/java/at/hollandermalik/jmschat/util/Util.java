@@ -10,6 +10,9 @@ import java.io.ObjectOutputStream;
 import java.io.Serializable;
 import java.net.InetAddress;
 import java.net.URL;
+import java.time.format.DateTimeFormatter;
+
+import at.hollandermalik.jmschat.message.ChatMessage;
 
 /**
  * Simple Util class
@@ -23,6 +26,7 @@ public class Util {
 	 * 
 	 * @return WAN IP
 	 * @throws IOException
+	 *             Throws an IOException if there was an error getting the ip
 	 */
 	public static InetAddress getIp() throws IOException {
 		URL whatismyip = new URL("http://checkip.amazonaws.com");
@@ -37,6 +41,8 @@ public class Util {
 	 *            Serializeable to serialize
 	 * @return serialized object as byte data
 	 * @throws IOException
+	 *             Throws an IOException if there was an error serializing the
+	 *             object
 	 */
 	public static byte[] serializeToByteArray(Serializable ser) throws IOException {
 		ByteArrayOutputStream baos = new ByteArrayOutputStream();
@@ -53,7 +59,10 @@ public class Util {
 	 *            Data to deserialize
 	 * @return Serializeable from the data
 	 * @throws IOException
+	 *             Throws an IOException if there was an error deserializing the
+	 *             object
 	 * @throws ClassNotFoundException
+	 *             Throws an CNFE if there was an error deserializing the object
 	 */
 	public static Serializable deserilizeFromByteArray(byte[] data) throws IOException, ClassNotFoundException {
 		ByteArrayInputStream bais = new ByteArrayInputStream(data);
@@ -63,4 +72,23 @@ public class Util {
 		return ser;
 	}
 
+	/**
+	 * Stringify's a ChatMessage to get printed to the user
+	 * 
+	 * @param message
+	 *            Message to Stringify
+	 * @return String to print to user
+	 */
+	public static String stringifyMessage(ChatMessage message) {
+		StringBuilder sb = new StringBuilder();
+		sb.append("[");
+		sb.append(message.getTimestamp().format(DateTimeFormatter.ISO_DATE_TIME));
+		sb.append("] ");
+		sb.append(message.getNickname());
+		sb.append("@");
+		sb.append(message.getSenderIp().toString().replace("/", ""));
+		sb.append(": ");
+		sb.append(message.getContent());
+		return sb.toString();
+	}
 }

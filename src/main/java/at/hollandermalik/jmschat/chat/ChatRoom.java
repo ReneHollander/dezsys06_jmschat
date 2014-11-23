@@ -52,6 +52,7 @@ public class ChatRoom implements Closeable {
 	 * Actually join the ChatRoom
 	 * 
 	 * @throws JMSException
+	 *             Throws JMS Exception on JMS Error
 	 */
 	public void join() throws JMSException {
 		this.destination = this.getChat().getSession().createTopic(this.getTopicName());
@@ -70,7 +71,10 @@ public class ChatRoom implements Closeable {
 	 * @param message
 	 *            String content of the message
 	 * @throws JMSException
+	 *             Throws JMS Exception on JMS Error
 	 * @throws IOException
+	 *             Throws an Exception if there was an error serializing the
+	 *             message
 	 */
 	public void sendMessage(String message) throws JMSException, IOException {
 		this.getProducer().send(MessageUtil.serializeMessage(this.getChat().getSession(), new ChatMessage(this.getChat().getMyIp(), LocalDateTime.now(), this.getChat().getNickname(), message)));

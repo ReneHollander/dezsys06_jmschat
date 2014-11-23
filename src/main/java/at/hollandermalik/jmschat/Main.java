@@ -14,6 +14,7 @@ import org.apache.logging.log4j.Logger;
 
 import at.hollandermalik.jmschat.chat.JMSChat;
 import at.hollandermalik.jmschat.message.ChatMessage;
+import at.hollandermalik.jmschat.util.Util;
 
 /**
  * The CLI for the chat, provides all the commands and starts the chatclient
@@ -44,50 +45,56 @@ public class Main {
 	 */
 	public void startCliClient() {
 
-		Scanner scanner = null;
-
 		this.getChat().setMessageHandler(message -> {
-			System.out.println(message);
+			System.out.println(Util.stringifyMessage(message));
 		});
 
 		LOGGER.info("Welcome!");
 		LOGGER.info("Enter \"HELP\" for help and \"EXIT\" if you want to leave.");
 
-		BufferedReader sysin;
-		String begin;
+		BufferedReader sysin = new BufferedReader(new InputStreamReader(System.in));
 
-		while (true) {
+		String line = null;
+		try {
+			while ((line = sysin.readLine()) != null) {
 
-			sysin = new BufferedReader(new InputStreamReader(System.in));
-			try {
-				scanner = new Scanner(sysin.readLine());
-			} catch (IOException e1) {
-				LOGGER.error("An Error occured while initialising of the scanner", e1);
-			}
-			switch (begin = scanner.next()) {
-				case "HELP" :
+				Scanner scanner = new Scanner(line);
+				String begin = scanner.next();
+
+				switch (begin) {
+				case "HELP":
 					help();
 					break;
-				case "EXIT" :
+				case "EXIT":
 					LOGGER.info("exiting");
 					try {
 						this.getChat().close();
 					} catch (IOException e1) {
 					}
 					System.exit(0);
-				case "MAILBOX" :
-					this.mailbox();
+				case "MAILBOX":
+					try {
+						for (ChatMessage m : this.getChat().getMailbox().getMessageQueue()) {
+							System.out.println(Util.stringifyMessage(m));
+						}
+					} catch (JMSException | ClassNotFoundException | IOException e) {
+						LOGGER.error("An Error occured while requesting for mails", e);
+					}
 					break;
-				case "MAIL" :
+				case "MAIL":
 					if (scanner.hasNext()) {
 						String username = scanner.next();
 						String content = "";
 						while (scanner.hasNext()) {
-							content += " " + scanner.next();
+							if (content.length() == 0) {
+								content = scanner.next();
+							} else {
+								content += " " + scanner.next();
+							}
 						}
-						LOGGER.info(username + " " + content);
 						try {
 							this.getChat().getMailbox().sendMessageToQueue(username, content);
+							LOGGER.info("Successfully sent message to user: " + username);
 						} catch (JMSException | IOException e) {
 							LOGGER.error("An Error occured while sending to MessageQueue", e);
 						}
@@ -95,10 +102,11 @@ public class Main {
 						LOGGER.info("Please enter a valid username.");
 					}
 					break;
-				case "CHATROOM" :
+				case "CHATROOM":
 					if (scanner.hasNext()) {
 						try {
 							getChat().joinChatroom(scanner.next());
+							LOGGER.info("You entered chatroom: " + getChat().getCurrentChatRoom().getTopicName());
 						} catch (IOException | JMSException e) {
 							LOGGER.error("An Error occured while entering chatroom", e);
 						}
@@ -106,63 +114,26 @@ public class Main {
 						LOGGER.info("Please enter a valid chatroomname");
 					}
 					break;
-				default :
+				default:
 					if (getChat().getCurrentChatRoom() != null) {
 						String content = begin;
 						while (scanner.hasNext()) {
 							content += " " + scanner.next();
 						}
-						send(content);
-						LOGGER.info(content);
+						try {
+							getChat().getCurrentChatRoom().sendMessage(content);
+						} catch (JMSException | IOException e) {
+							LOGGER.error("An Error occured while trying to send messages", e);
+						}
+						// LOGGER.info(content);
 					} else {
 						LOGGER.info("You have to join a chatroom use: CHATROOM <chatroomname>");
 					}
+				}
+				scanner.close();
 			}
-			scanner.close();
-		}
-	}
-
-	/**
-	 * Handles the Exception and sends the message, if it's possible.
-	 * 
-	 * @param msg
-	 *            The message to send
-	 */
-	public void send(String msg) {
-		try {
-			getChat().getCurrentChatRoom().sendMessage(msg);
-		} catch (JMSException | IOException e) {
-			LOGGER.error("An Error occured while trying to send messages", e);
-		}
-	}
-
-	/**
-	 * Handles the Exceptions and sends the mail, if it's possible.
-	 * 
-	 * @param recvNickname
-	 *            The nickname of the reciever
-	 * @param content
-	 *            The message
-	 */
-	public void mail(String recvNickname, String content) {
-		try {
-			this.getChat().getMailbox().sendMessageToQueue(recvNickname, content);
-		} catch (JMSException | IOException e) {
-			LOGGER.error("An Error occured while trying to send mails", e);
-		}
-	}
-
-	/**
-	 * Handles the Exceptions and displays all the queued messages.
-	 */
-	public void mailbox() {
-		try {
-			for (ChatMessage m : this.getChat().getMailbox().getMessageQueue()) {
-				LOGGER.info("Sender: " + m.getNickname() + " (" + m.getSenderIp() + ")");
-				LOGGER.info("Message:\n" + m.getContent());
-			}
-		} catch (JMSException | ClassNotFoundException | IOException e) {
-			LOGGER.error("An Error occured while requesting for mails", e);
+		} catch (IOException e) {
+			LOGGER.error("Error reading from sysin", e);
 		}
 	}
 
@@ -189,6 +160,7 @@ public class Main {
 	 * Receives the arguments, starts the CLI and handles the exceptions.
 	 * 
 	 * @param args
+	 *            CLI Arguments
 	 */
 	public static void main(String[] args) {
 		try {
@@ -204,7 +176,7 @@ public class Main {
 				cli.startCliClient();
 			} else {
 				LOGGER.info("Not enough arguments");
-				LOGGER.info("java -jar <ip_of_the_message-broker> <nickname> [<chatroom_name>]");
+				LOGGER.info("Usage: java -jar dezsys06_jmschat.jar <ip_of_the_message-broker> <nickname> [chatroom_name]");
 				LOGGER.info("For example: java -jar 0.0.0.0:61616 testuser testchatroom");
 			}
 		} catch (URISyntaxException e) {

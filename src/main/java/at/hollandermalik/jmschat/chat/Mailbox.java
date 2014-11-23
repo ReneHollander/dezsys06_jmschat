@@ -43,6 +43,7 @@ public class Mailbox implements Closeable {
 	 * send messages.
 	 * 
 	 * @throws JMSException
+	 *             Throws JMS Exception on JMS Error
 	 */
 	public void join() throws JMSException {
 		this.destination = this.getChat().getSession().createQueue(this.getChat().getNickname());
@@ -54,8 +55,13 @@ public class Mailbox implements Closeable {
 	 * 
 	 * @return Messages from the mailbox
 	 * @throws JMSException
+	 *             Throws JMS Exception on JMS Error
 	 * @throws IOException
+	 *             Throws and IOException if there was an error deserializing
+	 *             the message
 	 * @throws ClassNotFoundException
+	 *             Throws and CNFE if there was an error deserializing the
+	 *             message
 	 */
 	public List<ChatMessage> getMessageQueue() throws JMSException, ClassNotFoundException, IOException {
 		List<ChatMessage> messageQueue = new ArrayList<ChatMessage>();
@@ -75,7 +81,10 @@ public class Mailbox implements Closeable {
 	 * @param content
 	 *            Content of the message
 	 * @throws JMSException
+	 *             Throws JMS Exception on JMS Error
 	 * @throws IOException
+	 *             Throws an IOException if there was an error serializing the
+	 *             message
 	 */
 	public void sendMessageToQueue(String recieverNickname, String content) throws JMSException, IOException {
 		Destination destination = this.getChat().getSession().createQueue(recieverNickname);

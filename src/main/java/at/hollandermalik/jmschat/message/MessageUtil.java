@@ -33,7 +33,9 @@ public class MessageUtil {
 	 *            Message to serialize
 	 * @return JMS Message
 	 * @throws JMSException
+	 *             Throws JMS Exception on JMS Error
 	 * @throws IOException
+	 *             If there was an error serializing the object
 	 */
 	public static Message serializeMessage(Session session, ChatMessage chatMessage) throws JMSException, IOException {
 		BytesMessage message = session.createBytesMessage();
@@ -57,8 +59,11 @@ public class MessageUtil {
 	 *            JMS Message to desrialize
 	 * @return ChatMessage from the JMS Message
 	 * @throws JMSException
+	 *             Throws JMS Exception on JMS Error
 	 * @throws IOException
+	 *             If there was an error deserializing the byte data
 	 * @throws ClassNotFoundException
+	 *             If there was an error deserializing byte data
 	 */
 	public static ChatMessage deserializeMessage(Message inMsg) throws JMSException, ClassNotFoundException, IOException {
 		BytesMessage message = (BytesMessage) inMsg;
