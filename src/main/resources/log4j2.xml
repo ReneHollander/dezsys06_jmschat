@@ -1,0 +1,17 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE xml>
+<configuration status="OFF">
+	<appenders>
+		<console name="ConsoleLogger" target="SYSTEM_OUT">
+			<patternlayout pattern="[%d{HH:mm:ss:SSS}][%t][%level][%logger{36}] %msg%n" />
+		</console>
+		<async name="Async">
+			<appender-ref ref="ConsoleLogger" />
+		</async>
+	</appenders>
+	<loggers>
+		<root level="DEBUG">
+			<appender-ref ref="ConsoleLogger" />
+		</root>
+	</loggers>
+</configuration>

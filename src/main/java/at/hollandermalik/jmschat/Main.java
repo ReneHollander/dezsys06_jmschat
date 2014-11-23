@@ -3,16 +3,19 @@ package at.hollandermalik.jmschat;
 import java.io.BufferedReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
-import java.net.InetAddress;
-import java.net.UnknownHostException;
 
 import javax.jms.JMSException;
+
+import org.apache.logging.log4j.LogManager;
+import org.apache.logging.log4j.Logger;
 
 import at.hollandermalik.jmschat.chat.JMSChat;
 import at.hollandermalik.jmschat.chat.Mailbox;
 import at.hollandermalik.jmschat.message.ChatMessage;
 
 public class Main {
+
+	private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
 	private JMSChat chat;
 	private Mailbox mailbox;
@@ -25,6 +28,8 @@ public class Main {
 		boolean tryAgain = true;
 
 		BufferedReader stdIn = new BufferedReader(new InputStreamReader(System.in));
+
+		LOGGER.info("Welcome!");
 
 		System.out.println("Welcome!");
 		System.out.println("Enter \"HELP\" for help and \"EXIT\" if you want to leave.");
