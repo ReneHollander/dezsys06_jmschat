@@ -190,10 +190,13 @@ public class JMSChat implements Closeable {
 
 	@Override
 	public void close() throws IOException {
-		if (this.getCurrentChatRoom() != null) {
-			this.getCurrentChatRoom().close();
-		}
 		try {
+			if (this.getCurrentChatRoom() != null) {
+				this.getCurrentChatRoom().close();
+			}
+			if (this.getMailbox() != null) {
+				this.getMailbox().close();
+			}
 			this.getConnection().close();
 			this.getSession().close();
 		} catch (JMSException e) {

@@ -38,10 +38,16 @@ public class Main {
 		// BufferedReader stdIn = new BufferedReader(new
 		// InputStreamReader(System.in));
 
-		LOGGER.info("Welcome!");
+		this.getChat().setMessageHandler(new Handler<ChatMessage>() {
 
-		System.out.println("Welcome!");
-		System.out.println("Enter \"HELP\" for help and \"EXIT\" if you want to leave.");
+			@Override
+			public void handle(ChatMessage param) {
+				LOGGER.info(param.getNickname() + " [" + param.getSenderIp() + "]: " + param.getContent());
+			}
+		});
+
+		LOGGER.info("Welcome!");
+		LOGGER.info("Enter \"HELP\" for help and \"EXIT\" if you want to leave.");
 
 		BufferedReader a;
 		String z;
@@ -56,11 +62,15 @@ public class Main {
 			}
 			switch (z = scanner.next()) {
 				case "HELP" :
-					this.help();
+					help();
 					break;
 				case "EXIT" :
-					System.out.println("exiting");
-					return;
+					LOGGER.info("exiting");
+					try {
+						this.getChat().close();
+					} catch (IOException e1) {
+					}
+					System.exit(0);
 				case "MAILBOX" :
 					this.mailbox();
 					break;
@@ -71,14 +81,14 @@ public class Main {
 						while (scanner.hasNext()) {
 							content += " " + scanner.next();
 						}
-						System.out.println(username + " " + content);
+						LOGGER.info(username + " " + content);
 						try {
-							getMailbox().sendMessageToQueue(username, content);
+							this.getChat().getMailbox().sendMessageToQueue(username, content);
 						} catch (JMSException | IOException e) {
 							LOGGER.error("An Error occured while sending to MessageQueue", e);
 						}
 					} else {
-						System.out.println("Please enter a valid username.");
+						LOGGER.info("Please enter a valid username.");
 					}
 					break;
 				case "CHATROOM" :
@@ -89,7 +99,7 @@ public class Main {
 							LOGGER.error("An Error occured while entering chatroom", e);
 						}
 					} else {
-						System.out.println("Please enter a valid chatroomname");
+						LOGGER.info("Please enter a valid chatroomname");
 					}
 					break;
 				default :
@@ -98,18 +108,10 @@ public class Main {
 						content += " " + scanner.next();
 					}
 					send(content);
-					System.out.println(content);
+					LOGGER.info(content);
 			}
 			scanner.close();
 		}
-	}
-	public void help() {
-
-		System.out.println("EXIT\texit the program");
-		System.out.println("MAIL <nickname> <message>\tsends a mail to the mailbox of the given user");
-		System.out.println("MAILBOX\tcall up your mailbox");
-		System.out.println("CHATROOM <chatroomname>\tEnters the given chatroom");
-
 	}
 
 	public void send(String msg) {
@@ -122,7 +124,7 @@ public class Main {
 
 	public void mail(String recvNickname, String content) {
 		try {
-			getMailbox().sendMessageToQueue(recvNickname, content);
+			this.getChat().getMailbox().sendMessageToQueue(recvNickname, content);
 		} catch (JMSException | IOException e) {
 			LOGGER.error("An Error occured while trying to send mails", e);
 		}
@@ -130,9 +132,9 @@ public class Main {
 
 	public void mailbox() {
 		try {
-			for (ChatMessage m : getMailbox().getMessageQueue()) {
-				System.out.println("Sender: " + m.getNickname() + " (" + m.getSenderIp() + ")");
-				System.out.println("Message:\n" + m.getContent());
+			for (ChatMessage m : this.getChat().getMailbox().getMessageQueue()) {
+				LOGGER.info("Sender: " + m.getNickname() + " (" + m.getSenderIp() + ")");
+				LOGGER.info("Message:\n" + m.getContent());
 			}
 		} catch (JMSException | ClassNotFoundException | IOException e) {
 			LOGGER.error("An Error occured while requesting for mails", e);
@@ -147,33 +149,33 @@ public class Main {
 		this.chat = chat;
 	}
 
-	public Mailbox getMailbox() {
-		return mailbox;
-	}
-
-	public void setMailbox(Mailbox mailbox) {
-		this.mailbox = mailbox;
-	}
-
 	public static void main(String[] args) {
-		Main cli = null;
 		try {
-			cli = new Main(new JMSChat(new URI(args[0]), args[1]));
-			cli.getChat().start();
-			try {
-				if (args[2] != null) {
-					System.out.println(args[2]);
+			if (args.length >= 2) {
+				Main cli = new Main(new JMSChat(new URI(args[0]), args[1]));
+				cli.getChat().start();
+				if (args.length != 3) {
+					LOGGER.info(args[2]);
 					cli.getChat().joinChatroom(args[2]);
+				} else {
+					LOGGER.info("You still have to join a chatroom");
 				}
-			} catch (ArrayIndexOutOfBoundsException e1) {
-				System.out.println("You still have to join a chatroom");
+				cli.startCliClient();
+			} else {
+				// TODO not enough arguments, display help
+				LOGGER.info("");
 			}
 		} catch (URISyntaxException e) {
-			System.out.println("Wrong broker-URI it should look like the following: tcp://ip:port");
+			LOGGER.info("Wrong broker-URI it should look like the following: tcp://ip:port");
 		} catch (IOException | JMSException e) {
 			LOGGER.error("An Error occured while creating a new Main", e);
 		}
-		cli.startCliClient();
 	}
 
+	private static void help() {
+		LOGGER.info("EXIT\texit the program");
+		LOGGER.info("MAIL <nickname> <message>\tsends a mail to the mailbox of the given user");
+		LOGGER.info("MAILBOX\tcall up your mailbox");
+		LOGGER.info("CHATROOM <chatroomname>\tEnters the given chatroom");
+	}
 }
