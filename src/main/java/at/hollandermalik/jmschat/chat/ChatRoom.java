@@ -9,6 +9,7 @@ import javax.jms.Destination;
 import javax.jms.JMSException;
 import javax.jms.Message;
 import javax.jms.MessageConsumer;
+import javax.jms.MessageListener;
 import javax.jms.MessageProducer;
 
 import org.apache.logging.log4j.LogManager;
@@ -22,7 +23,7 @@ import at.hollandermalik.jmschat.message.MessageUtil;
  * 
  * @author Rene Hollander
  */
-public class ChatRoom implements Closeable {
+public class ChatRoom implements Closeable, MessageListener {
 
 	private static final Logger LOGGER = LogManager.getLogger(ChatRoom.class);
 
@@ -32,8 +33,6 @@ public class ChatRoom implements Closeable {
 	private Destination destination;
 	private MessageProducer producer;
 	private MessageConsumer consumer;
-
-	private MessageReciever messageReciever;
 
 	/**
 	 * Construct but not join a new ChatRoom
@@ -60,8 +59,7 @@ public class ChatRoom implements Closeable {
 		this.getProducer().setDeliveryMode(DeliveryMode.NON_PERSISTENT);
 
 		this.consumer = this.getChat().getSession().createConsumer(this.getDestination());
-
-		this.messageReciever = new MessageReciever(this);
+		this.getConsumer().setMessageListener(this);
 	}
 
 	/**
@@ -124,7 +122,6 @@ public class ChatRoom implements Closeable {
 	@Override
 	public void close() throws IOException {
 		try {
-			this.messageReciever.close();
 			this.getProducer().close();
 			this.getConsumer().close();
 		} catch (JMSException e) {
@@ -132,43 +129,15 @@ public class ChatRoom implements Closeable {
 		}
 	}
 
-	private class MessageReciever implements Runnable, Closeable {
-
-		private ChatRoom chatRoom;
-
-		private boolean running;
-
-		public MessageReciever(ChatRoom chatRoom) {
-			this.chatRoom = chatRoom;
-
-			this.running = true;
-			Thread thread = new Thread(this);
-			thread.setDaemon(true);
-			thread.start();
-		}
-
-		@Override
-		public void run() {
-			while (this.running) {
-				try {
-					Message message = this.chatRoom.consumer.receive();
-					if (message == null) {
-						this.close();
-						break;
-					}
-					if (this.chatRoom.getChat().getMessageHandler() != null) {
-						ChatMessage chatMessage = MessageUtil.deserializeMessage(message);
-						this.chatRoom.getChat().getMessageHandler().handle(chatMessage);
-					}
-				} catch (Exception e) {
-					LOGGER.error("An Error occured while trying to read messages", e);
-				}
+	@Override
+	public void onMessage(Message message) {
+		try {
+			if (message != null && this.getChat().getMessageHandler() != null) {
+				ChatMessage chatMessage = MessageUtil.deserializeMessage(message);
+				this.getChat().getMessageHandler().handle(chatMessage);
 			}
-		}
-
-		@Override
-		public void close() throws IOException {
-			this.running = false;
+		} catch (Exception e) {
+			LOGGER.error("An Error occured while trying to read messages", e);
 		}
 	}
 }
