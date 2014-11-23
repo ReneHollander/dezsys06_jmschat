@@ -1,6 +1,6 @@
 package at.hollandermalik.jmschat.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.net.URI;
@@ -22,7 +22,7 @@ public class TestChatroom {
 	JMSChat chat;
 	Mailbox mail;
 	ChatRoom room;
-	
+
 	@Before
 	public void prepForTesting() {
 		try {
@@ -38,31 +38,31 @@ public class TestChatroom {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Test
-	public void ChatRun(){
+	public void ChatRun() {
 		try {
 			chat.getCurrentChatRoom().sendMessage("hallo");
 		} catch (JMSException | IOException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
-		} 
+		}
 	}
-	
+
 	@Test
-	public void ChatRunNull(){
+	public void ChatRunNull() {
 		try {
 			chat.getCurrentChatRoom().sendMessage(null);
 			chat.getCurrentChatRoom().sendMessage("hallo");
-			assertEquals("hallo",MessageUtil.deserializeMessage(chat.getCurrentChatRoom().getConsumer().receive()).getContent());
+			assertEquals("hallo", MessageUtil.deserializeMessage(chat.getCurrentChatRoom().getConsumer().receive()).getContent());
 		} catch (JMSException | IOException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Test
-	public void chatClose(){
+	public void chatClose() {
 		try {
 			chat.close();
 		} catch (IOException e) {

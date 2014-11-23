@@ -42,6 +42,7 @@ public class TestJMSChat {
 			e.printStackTrace();
 		}
 	}
+
 	/**
 	 * Testing if the constructor sets the right brokerURI.
 	 */
@@ -143,9 +144,10 @@ public class TestJMSChat {
 		}
 
 	}
-	
+
 	/**
-	 * Testing if the JMSChat closes correctly, also if there's no mailbox and chatroom set.
+	 * Testing if the JMSChat closes correctly, also if there's no mailbox and
+	 * chatroom set.
 	 */
 	@Test
 	public void JMSChatCloseWithout() {

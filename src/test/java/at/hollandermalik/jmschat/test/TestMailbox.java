@@ -1,6 +1,6 @@
 package at.hollandermalik.jmschat.test;
 
-import static org.junit.Assert.*;
+import static org.junit.Assert.assertEquals;
 
 import java.io.IOException;
 import java.net.URI;
@@ -42,15 +42,15 @@ public class TestMailbox {
 	public void MailboxSendingReceiving() {
 		try {
 			chat.getMailbox().sendMessageToQueue("nickname", "hallo");
-			assertEquals("hallo",chat.getMailbox().getMessageQueue().get(0).getContent());
+			assertEquals("hallo", chat.getMailbox().getMessageQueue().get(0).getContent());
 		} catch (JMSException | IOException | ClassNotFoundException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Test
-	public void MailboxClosing(){
+	public void MailboxClosing() {
 		try {
 			chat.getMailbox().close();
 		} catch (IOException | JMSException e) {

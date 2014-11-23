@@ -41,39 +41,32 @@ public class TestMain {
 			e.printStackTrace();
 		}
 	}
-	
+
 	@Test
-	public void testMain(){
+	public void testMain() {
 		Main main = new Main(chat);
-		assertEquals(chat.getBrokerUri(),main.getChat().getBrokerUri());
+		assertEquals(chat.getBrokerUri(), main.getChat().getBrokerUri());
 	}
+
 	/*
-	@Test
-	public void startCliClientEXIT(){
-		Main main = new Main(chat);
-		ByteArrayInputStream in = new ByteArrayInputStream("EXIT".getBytes());
-		System.setIn(in);
-		main.startCliClient();
-		
-		
-	}
-	
-	@Test
-	public void startCliHELP(){
-		Main main = new Main(chat);
-		ByteArrayInputStream in = new ByteArrayInputStream("HELP".getBytes());
-		System.setIn(in);
-		main.startCliClient();
-		
-		
-	}
-	*/
-	@Test
-	public void testMainmain(){
-		Main main = new Main(chat);
-		ByteArrayInputStream in = new ByteArrayInputStream("EXIT".getBytes());
-		System.setIn(in);
-		Main.main(new String[] {"tcp://localhost:61616", "nickname", "testroom"});
-	}
-	
+	 * @Test public void startCliClientEXIT(){ Main main = new Main(chat);
+	 * ByteArrayInputStream in = new ByteArrayInputStream("EXIT".getBytes());
+	 * System.setIn(in); main.startCliClient();
+	 * 
+	 * 
+	 * }
+	 * 
+	 * @Test public void startCliHELP(){ Main main = new Main(chat);
+	 * ByteArrayInputStream in = new ByteArrayInputStream("HELP".getBytes());
+	 * System.setIn(in); main.startCliClient();
+	 * 
+	 * 
+	 * }
+	 * 
+	 * @Test public void testMainmain() { Main main = new Main(chat);
+	 * ByteArrayInputStream in = new ByteArrayInputStream("EXIT".getBytes());
+	 * System.setIn(in); Main.main(new String[] { "tcp://localhost:61616",
+	 * "nickname", "testroom" }); }
+	 */
+
 }
