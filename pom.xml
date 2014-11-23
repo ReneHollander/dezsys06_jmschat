@@ -145,7 +145,7 @@
 							<transformers>
 								<transformer
 									implementation="org.apache.maven.plugins.shade.resource.ManifestResourceTransformer">
-									<mainClass>at.hollandermalik.jmschat.JMSChat</mainClass>
+									<mainClass>at.hollandermalik.jmschat.Main</mainClass>
 								</transformer>
 							</transformers>
 						</configuration>
