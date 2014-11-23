@@ -1,5 +1,6 @@
 package at.hollandermalik.jmschat.message;
 
+import java.io.Serializable;
 import java.net.InetAddress;
 import java.time.LocalDateTime;
 
@@ -9,7 +10,9 @@ import java.time.LocalDateTime;
  * 
  * @author Rene Hollander
  */
-public class ChatMessage {
+public class ChatMessage implements Serializable {
+
+	private static final long serialVersionUID = 1L;
 
 	private InetAddress senderIp;
 	private LocalDateTime timestamp;
