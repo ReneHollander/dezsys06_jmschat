@@ -13,7 +13,6 @@ import org.apache.logging.log4j.LogManager;
 import org.apache.logging.log4j.Logger;
 
 import at.hollandermalik.jmschat.chat.JMSChat;
-import at.hollandermalik.jmschat.chat.Mailbox;
 import at.hollandermalik.jmschat.message.ChatMessage;
 
 /**
@@ -27,7 +26,6 @@ public class Main {
 	private static final Logger LOGGER = LogManager.getLogger(Main.class);
 
 	private JMSChat chat;
-	private Mailbox mailbox;
 
 	/**
 	 * Constructs Main and sets the chat
@@ -41,7 +39,8 @@ public class Main {
 	}
 
 	/**
-	 * Starts the CLI-Client, checks for the input and sets the required attributes.
+	 * Starts the CLI-Client, checks for the input and sets the required
+	 * attributes.
 	 */
 	public void startCliClient() {
 
@@ -108,17 +107,27 @@ public class Main {
 					}
 					break;
 				default :
-					String content = begin;
-					while (scanner.hasNext()) {
-						content += " " + scanner.next();
+					if (getChat().getCurrentChatRoom() != null) {
+						String content = begin;
+						while (scanner.hasNext()) {
+							content += " " + scanner.next();
+						}
+						send(content);
+						LOGGER.info(content);
+					} else {
+						LOGGER.info("You have to join a chatroom use: CHATROOM <chatroomname>");
 					}
-					send(content);
-					LOGGER.info(content);
 			}
 			scanner.close();
 		}
 	}
 
+	/**
+	 * Handles the Exception and sends the message, if it's possible.
+	 * 
+	 * @param msg
+	 *            The message to send
+	 */
 	public void send(String msg) {
 		try {
 			getChat().getCurrentChatRoom().sendMessage(msg);
@@ -127,6 +136,14 @@ public class Main {
 		}
 	}
 
+	/**
+	 * Handles the Exceptions and sends the mail, if it's possible.
+	 * 
+	 * @param recvNickname
+	 *            The nickname of the reciever
+	 * @param content
+	 *            The message
+	 */
 	public void mail(String recvNickname, String content) {
 		try {
 			this.getChat().getMailbox().sendMessageToQueue(recvNickname, content);
@@ -135,6 +152,9 @@ public class Main {
 		}
 	}
 
+	/**
+	 * Handles the Exceptions and displays all the queued messages.
+	 */
 	public void mailbox() {
 		try {
 			for (ChatMessage m : this.getChat().getMailbox().getMessageQueue()) {
@@ -146,14 +166,30 @@ public class Main {
 		}
 	}
 
+	/**
+	 * Gets the parent JMSChat associated with this chatroom
+	 * 
+	 * @return Parent JMSChat
+	 */
 	public JMSChat getChat() {
 		return chat;
 	}
 
+	/**
+	 * Sets the parent JMSChat associated with this chatroom
+	 * 
+	 * @param chat
+	 *            parent JMSChat
+	 */
 	public void setChat(JMSChat chat) {
 		this.chat = chat;
 	}
 
+	/**
+	 * Receives the arguments, starts the CLI and handles the exceptions.
+	 * 
+	 * @param args
+	 */
 	public static void main(String[] args) {
 		try {
 			if (args.length >= 2) {
@@ -167,8 +203,9 @@ public class Main {
 				}
 				cli.startCliClient();
 			} else {
-				// TODO not enough arguments, display help
 				LOGGER.info("Not enough arguments");
+				LOGGER.info("java -jar <ip_of_the_message-broker> <nickname> [<chatroom_name>]");
+				LOGGER.info("For example: java -jar 0.0.0.0:61616 testuser testchatroom");
 			}
 		} catch (URISyntaxException e) {
 			LOGGER.info("Wrong broker-URI it should look like the following: tcp://ip:port");
@@ -177,10 +214,13 @@ public class Main {
 		}
 	}
 
+	/**
+	 * displays the help-menu
+	 */
 	private static void help() {
-		LOGGER.info("EXIT\texit the program");
+		LOGGER.info("EXIT\t\t\t\texit the program");
 		LOGGER.info("MAIL <nickname> <message>\tsends a mail to the mailbox of the given user");
-		LOGGER.info("MAILBOX\tcall up your mailbox");
+		LOGGER.info("MAILBOX\t\t\tcall up your mailbox");
 		LOGGER.info("CHATROOM <chatroomname>\tEnters the given chatroom");
 	}
 }
